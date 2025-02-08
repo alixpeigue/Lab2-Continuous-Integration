@@ -3,6 +3,7 @@ plugins {
     id("java")
     id("com.github.johnrengelman.shadow") version "8.1.1"
     id("com.diffplug.spotless") version "7.0.2"
+    id("org.openjfx.javafxplugin") version "0.1.0"
 }
 
 group = "app.ciserver"
@@ -21,6 +22,7 @@ dependencies {
     implementation("org.thymeleaf:thymeleaf:3.1.3.RELEASE")
     implementation("com.fasterxml.jackson.core:jackson-databind:2.18.2")
     implementation("org.slf4j:slf4j-simple:2.0.16")
+    implementation("org.openjfx:javafx-base:21.0.2")
 }
 
 java {
@@ -28,6 +30,7 @@ java {
         languageVersion = JavaLanguageVersion.of(21)
     }
 }
+
 
 application {
     mainClass = "app.ciserver.Main"

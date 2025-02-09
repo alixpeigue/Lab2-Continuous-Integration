@@ -3,7 +3,6 @@ package app.ciserver;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import javafx.util.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -14,6 +13,9 @@ import org.slf4j.LoggerFactory;
 public class CommandService {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(CommandService.class);
+
+	public record CommandResult(int exitCode, String output) {
+	}
 
 	/**
 	 * <b>DON'T USE THIS METHOD, IT IS PACKAGE-PRIVATE ONLY FOR TESTING</b>
@@ -41,7 +43,7 @@ public class CommandService {
 	 *            - String representation of command that should be executed.
 	 * @return - A pair consisting of the exit code and the ouput from the process.
 	 */
-	public Pair<Integer, String> runCommand(String[] command) {
+	public CommandResult runCommand(String[] command) {
 		// Create process from command
 		ProcessBuilder processBuilder = getProcessBuilder(command);
 		processBuilder.redirectErrorStream(true); // merge standard output and standard error streams.
@@ -68,7 +70,7 @@ public class CommandService {
 			LOGGER.error("Error while executing command '{}' : {}", String.join(" ", command), e.getMessage());
 		}
 
-		return new Pair<>(exitCode, output.toString());
+		return new CommandResult(exitCode, output.toString());
 
 	}
 }

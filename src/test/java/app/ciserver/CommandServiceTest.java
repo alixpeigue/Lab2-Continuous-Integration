@@ -5,26 +5,10 @@ import static org.mockito.Mockito.*;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import javafx.util.Pair;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 class CommandServiceTest {
-	// private CommandService commandService;
-	// @BeforeEach
-	// void setUp() {
-	// commandService = new CommandService();
-	// }
-	// @Test
-	// public void validCommand() {
-	// String[] command = {"powershell.exe", "-Command", "ls"}; // Valid command.
-	// Pair<Integer, String> output = commandService.runCommand(command);
-	// int expectedExitCode = 0; // Should return with no errors.
-	// int actualExitCode = output.getKey(); // get the exitcode
-	// String actualString = output.getValue(); // get output string.
-	// assertEquals(expectedExitCode, actualExitCode);
-	// assertNotNull(actualString);
-	// }
 
 	static CommandService spiedCommandService;
 	static ProcessBuilder mockProcessBuilder;
@@ -48,7 +32,7 @@ class CommandServiceTest {
 
 		var result = spiedCommandService.runCommand(command);
 
-		assertEquals(new Pair<>(-1, ""), result);
+		assertEquals(new CommandService.CommandResult(-1, ""), result);
 	}
 
 	@Test
@@ -70,7 +54,7 @@ class CommandServiceTest {
 
 		verify(mockProcessBuilder).redirectErrorStream(true); // check that stderr is redirected to stdout
 
-		assertEquals(new Pair<>(2, output), result);
+		assertEquals(new CommandService.CommandResult(2, output), result);
 	}
 
 }

@@ -1,74 +1,94 @@
 package app.ciserver;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.*;
 
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
-import java.net.http.HttpRequest.BodyPublishers;
+import java.net.http.HttpResponse;
 import java.time.Duration;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
+import org.mockito.*;
+
 class NotificationServiceTest {
 
 	static String uriStub;
-	static NotificationService testNotifyService;
-	static NotificationService spyNotifyService;
 
 	@BeforeAll
 	static void testSetup() {
 		uriStub = "https://www.example.com";
-		testNotifyService = new NotificationService();
-		spyNotifyService = Mockito.spy(testNotifyService);
 	}
+
+	@Mock
+	private HttpClient mockedClient;
+
+	@Mock
+	private HttpClient.Builder mockedClientBuilder;
+
+	@Mock
+	private HttpRequest mockedRequest;
+
+	@Mock
+	private HttpRequest.Builder mockedRequestBuilder;
+
+	@Mock
+	private HttpResponse<String> mockedResponse;
+
+	@Spy
+	private NotificationService spyNotificationService;
+
+	@BeforeEach
+	void initMocks() {
+		MockitoAnnotations.openMocks(this);
+	}
+
 	@Test
 	void testNotifyFailure() {
 	}
+
 	@Test
 	void testNotifyPending() {
 
-		doNothing().when(spyNotifyService).requestWrapper("test", "test", uriStub);
+		doNothing().when(spyNotificationService).requestWrapper("test", "test", uriStub);
 
 	}
+
 	@Test
 	void testNotifySuccess() {
 	}
+
 	@Test
 	void testRequestWrapper() throws IOException, InterruptedException {
 
-		HttpClient.Builder mockedClientBuilder = mock(HttpClient.Builder.class);
-		HttpClient mockedClient = mock(HttpClient.class);
+		when(mockedRequestBuilder.uri(any(URI.class))).thenReturn(mockedRequestBuilder);
+		when(mockedRequestBuilder.header(anyString(), anyString())).thenReturn(mockedRequestBuilder);
+		when(mockedRequestBuilder.timeout(any(Duration.class))).thenReturn(mockedRequestBuilder);
+		when(mockedRequestBuilder.POST(any(HttpRequest.BodyPublisher.class))).thenReturn(mockedRequestBuilder);
+		when(mockedRequestBuilder.build()).thenReturn(mockedRequest);
 
-		HttpRequest.Builder mockedReqBuilder = mock(HttpRequest.Builder.class);
-		HttpRequest mockedRequest = mock(HttpRequest.class);
-		// We cannot mock final classes in mockito painlessly unfortunately
-		URI fakeMockUri = URI.create("https://example.com");
-		// Need to override this one part
-		when(mockedReqBuilder.uri(fakeMockUri)).thenReturn(mockedReqBuilder);
-		// when(mockedReqBuilder.uri(URI.create(uriStub))).thenReturn(mockedReqBuilder);
-		when(mockedReqBuilder.header("Accept", "application/vnd.github+json")).thenReturn(mockedReqBuilder);
-		when(mockedReqBuilder.header("Authorization", "funny token")).thenReturn(mockedReqBuilder);
-		when(mockedReqBuilder.header("X-GitHub-Api-Version", "some header")).thenReturn(mockedReqBuilder);
-		when(mockedReqBuilder.timeout(Duration.ofMinutes(2))).thenReturn(mockedReqBuilder);
-		when(mockedReqBuilder.POST(BodyPublishers.ofString("test"))).thenReturn(mockedReqBuilder);
-
-		// .build().thenReturn(mockedRequest);
 		when(mockedClientBuilder.build()).thenReturn(mockedClient);
 
-		doReturn(mockedClientBuilder).when(spyNotifyService).clientBuilder();
-		doReturn(mockedReqBuilder).when(spyNotifyService).requestBuilder();
-		doNothing().when(spyNotifyService).handleResponse(any());
-		// mockedClient test when return 200 and not 200 (test 500), and also exceptions
+		when(mockedClient.send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class))).thenReturn(mockedResponse);
 
-		assertNotNull(uriStub, "uriStub must not be null");
-		spyNotifyService.requestWrapper("test", "dummy", uriStub);
-		verify(mockedReqBuilder).uri(URI.create(uriStub)).header("Accept", "application/vnd.github+json")
-				.header("Authorization", "funny token").header("X-GitHub-Api-Version", "some header")
-				.timeout(Duration.ofMinutes(2)).POST(BodyPublishers.ofString("test")).build();
-		verify(mockedClient).send(mockedRequest, any());
+		doReturn(mockedClientBuilder).when(spyNotificationService).clientBuilder();
+		doReturn(mockedRequestBuilder).when(spyNotificationService).requestBuilder();
+		doNothing().when(spyNotificationService).handleResponse(any());
+
+		spyNotificationService.requestWrapper("test", "dummy", uriStub);
+
+		verify(mockedRequestBuilder).uri(URI.create(uriStub));
+		verify(mockedRequestBuilder).header("Accept", "application/vnd.github+json");
+		verify(mockedRequestBuilder).header("Authorization", "Bearer $GITHUB_API_TOKEN");
+		verify(mockedRequestBuilder).header("X-GitHub-Api-Version", "2022-11-18");
+		verify(mockedRequestBuilder).timeout(Duration.ofMinutes(2));
+		verify(mockedRequestBuilder).POST(any(HttpRequest.BodyPublisher.class));
+		verify(mockedRequestBuilder).build();
+
+		verify(mockedClient).send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class));
 		verify(mockedClientBuilder).build();
-		// dont overwrite the method so dont do nothing
+
+		verify(spyNotificationService).handleResponse(mockedResponse);
 	}
 }

@@ -4,7 +4,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-import javafx.util.Pair;
+import app.ciserver.CommandService.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -23,7 +23,7 @@ class GitServiceTest {
 	void checkoutFail() {
 		String[] command = {"git", "-C", "repo", "checkout", "master"};
 
-		when(commandService.runCommand(any())).thenReturn(new Pair<>(1, "error"));
+		when(commandService.runCommand(any())).thenReturn(new CommandResult(1, "error"));
 
 		boolean result = gitService.checkout("repo", "master");
 
@@ -36,7 +36,7 @@ class GitServiceTest {
 	void checkoutSuccess() {
 		String[] command = {"git", "-C", "repo", "checkout", "master"};
 
-		when(commandService.runCommand(any())).thenReturn(new Pair<>(0, "success"));
+		when(commandService.runCommand(any())).thenReturn(new CommandResult(0, "success"));
 
 		boolean result = gitService.checkout("repo", "master");
 
@@ -49,7 +49,7 @@ class GitServiceTest {
 	void cloneFail() {
 		String[] command = {"git", "clone", "url", "destination"};
 
-		when(commandService.runCommand(any())).thenReturn(new Pair<>(1, "error"));
+		when(commandService.runCommand(any())).thenReturn(new CommandResult(1, "error"));
 
 		boolean result = gitService.clone("url", "destination");
 
@@ -62,7 +62,7 @@ class GitServiceTest {
 	void cloneSuccess() {
 		String[] command = {"git", "clone", "url", "destination"};
 
-		when(commandService.runCommand(any())).thenReturn(new Pair<>(0, "success"));
+		when(commandService.runCommand(any())).thenReturn(new CommandResult(0, "success"));
 
 		boolean result = gitService.clone("url", "destination");
 

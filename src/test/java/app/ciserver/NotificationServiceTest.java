@@ -1,6 +1,7 @@
 package app.ciserver;
 import static org.mockito.Mockito.*;
 
+import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -18,29 +19,35 @@ class NotificationServiceTest {
 		uriStub = "silly/domain";
 	}
 	@Test
-	static void testUpdateCommitStatus() {
-
-		HttpClient.Builder clientBuilder = mock(HttpClient.Builder.class, Mockito.RETURNS_DEEP_STUBS);
+	void testRequestWrapper() throws IOException, InterruptedException {
+		// good
+		HttpClient.Builder mockedClientBuilder = mock(HttpClient.Builder.class, Mockito.RETURNS_DEEP_STUBS);
 		HttpClient mockedClient = mock(HttpClient.class);
 
-		HttpRequest.Builder reqBuilder = mock(HttpRequest.Builder.class, Mockito.RETURNS_DEEP_STUBS);
+		HttpRequest.Builder mockedReqBuilder = mock(HttpRequest.Builder.class, Mockito.RETURNS_DEEP_STUBS);
 		HttpRequest mockedRequest = mock(HttpRequest.class);
-
-		when(reqBuilder.uri(URI.create(uriStub)).header("Accept", "application/vnd.github+json")
+		// stop good
+		when(mockedReqBuilder.uri(URI.create(uriStub)).header("Accept", "application/vnd.github+json")
 				.timeout(Duration.ofMinutes(2)).build()).thenReturn(mockedRequest);
-		HttpRequest request = reqBuilder.build();
-
-		when(clientBuilder.build()).thenReturn(mockedClient);
-		HttpClient client = clientBuilder.build();
-
+		when(mockedClientBuilder.build()).thenReturn(mockedClient);
+		// good
+		// not needed under
+		// verify call after calling them
 		NotificationService testNotifService = new NotificationService();
-		verify(reqBuilder).uri(URI.create(uriStub)).header("Accept", "application/vnd.github+json")
-				.timeout(Duration.ofMinutes(2)).build();
-		verify(clientBuilder).build();
 
-		NotificationService spyNotifService = Mockito.spy(testNotifService);
-		doNothing().when(spyNotifService).updateCommitStatus(anyString(), anyString());
-		spyNotifService.updateCommitStatus("test", "test");
+		NotificationService spyNotifyService = Mockito.spy(testNotifService);
+		doReturn(mockedClientBuilder).when(spyNotifyService).clientBuilder();
+		doReturn(mockedReqBuilder).when(spyNotifyService).requestBuilder();
+		doNothing().when(spyNotifyService).handleResponse(any());
+		// mockedClient test when return 200 and not 200 (test 500), and also exceptions
 
+		spyNotifyService.requestWrapper("test", uriStub);
+		verify(mockedReqBuilder, Mockito.times(2)).uri(URI.create(uriStub))
+				.header("Accept", "application/vnd.github+json").timeout(Duration.ofMinutes(2)).build();
+		verify(mockedClient).send(mockedRequest, any());
+		verify(mockedClientBuilder).build();
+		// dont overwrite the method so dont do nothing
+		// what to log, look at main, create static final logger notifservice.class , do
+		// logger.error
 	}
 }

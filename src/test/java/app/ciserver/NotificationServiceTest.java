@@ -20,7 +20,7 @@ class NotificationServiceTest {
 	@BeforeAll
 	static void testSetup() {
 		uriStub = "https://www.example.com";
-		pathParams = new HookEventModel("sha23", "ref", new PusherModel("silly@mail", "name", "username"),
+		pathParams = new HookEventModel("sha23", "ref", new PusherModel("silly@mail", "name"),
 				new RepositoryModel("cloneUrl", "FullName"));
 	}
 

@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.TimeZone;
 import org.junit.jupiter.api.Test;
 
 public class TestRunModelTest {
@@ -28,6 +29,7 @@ public class TestRunModelTest {
 		TestRunModel testRun = new ObjectMapper().readValue(json, TestRunModel.class);
 
 		SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
+		dateFormat.setTimeZone(TimeZone.getTimeZone("Europe/Stockholm"));
 		Date expectedTimestamp = dateFormat.parse("11-02-2025 15:30:45");
 
 		// Assertions to verify all fields are correctly set
@@ -43,6 +45,7 @@ public class TestRunModelTest {
 	@Test
 	public void testTestRunModelSerialization() throws Exception {
 		SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
+		dateFormat.setTimeZone(TimeZone.getTimeZone("Europe/Stockholm"));
 		Date timestamp = dateFormat.parse("11-02-2025 15:30:45");
 
 		// Create an instance of TestRunModel

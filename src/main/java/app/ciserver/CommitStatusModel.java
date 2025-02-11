@@ -1,6 +1,4 @@
 package app.ciserver;
 
-public class CommitStatusModel {
-	record CommitStatus(String state, String description, String context) {
-	}
+public record CommitStatusModel(String state, String description, String context) {
 }

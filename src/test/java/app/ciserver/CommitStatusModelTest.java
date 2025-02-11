@@ -1,10 +1,11 @@
+package app.ciserver;
+import java.io.IOException;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-
-import app.ciserver.CommitStatusModel;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import java.io.IOException;
 import org.junit.jupiter.api.Test;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class CommitStatusModelTest {
 	@Test
@@ -19,8 +20,8 @@ public class CommitStatusModelTest {
 				""";
 
 		// Deserialize JSON into CommitStatus object
-		CommitStatusModel.CommitStatus commitStatus = new ObjectMapper().readValue(json,
-				CommitStatusModel.CommitStatus.class);
+		CommitStatusModel commitStatus = new ObjectMapper().readValue(json,
+				CommitStatusModel.class);
 
 		// Assertions to verify all fields are correctly set
 		assertEquals("success", commitStatus.state());
@@ -34,7 +35,7 @@ public class CommitStatusModelTest {
 	@Test
 	public void testCommitStatusSerialization() throws Exception {
 		// Create an instance of CommitStatus
-		CommitStatusModel.CommitStatus commitStatus = new CommitStatusModel.CommitStatus("success",
+		CommitStatusModel commitStatus = new CommitStatusModel("success",
 				"Build completed successfully", "CI Server");
 
 		// Expected JSON (field order doesn't matter, but structure should match)

@@ -38,11 +38,11 @@ class NotificationServiceTest {
 	@Mock
 	private HttpResponse<String> mockedResponse;
 
-    @Mock
-    private CommitStatusModel mockedBodyParams;
+	@Mock
+	private CommitStatusModel mockedBodyParams;
 
-    @Mock 
-    private HookEventModel mockedPathParams;
+	@Mock
+	private HookEventModel mockedPathParams;
 
 	@Spy
 	private NotificationService spyNotificationService;
@@ -59,7 +59,8 @@ class NotificationServiceTest {
 	@Test
 	void testNotifyPending() {
 
-		doNothing().when(spyNotificationService).requestWrapper("test", "test", uriStub);
+		doNothing().when(spyNotificationService).requestWrapper(any(CommitStatusModel.class),
+				any(HookEventModel.class));
 
 	}
 
@@ -84,7 +85,7 @@ class NotificationServiceTest {
 		doReturn(mockedRequestBuilder).when(spyNotificationService).requestBuilder();
 		doNothing().when(spyNotificationService).handleResponse(any());
 
-		spyNotificationService.requestWrapper("test", "dummy", uriStub);
+		spyNotificationService.requestWrapper(any(CommitStatusModel.class), any(HookEventModel.class));
 
 		verify(mockedRequestBuilder).uri(URI.create(uriStub));
 		verify(mockedRequestBuilder).header("Accept", "application/vnd.github+json");

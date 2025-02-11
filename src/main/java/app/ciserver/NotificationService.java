@@ -1,4 +1,5 @@
 package app.ciserver;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -9,7 +10,6 @@ import java.net.http.HttpResponse.BodyHandlers;
 import java.time.Duration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.fasterxml.jackson.databind.ObjectMapper;
 public class NotificationService {
 
 	// TODO replace and integrate with webhook
@@ -29,6 +29,11 @@ public class NotificationService {
 		}
 	}
 
+	private CommitStatusModel makeCommitStatus(String state, String description, String context) {
+		CommitStatusModel bodyParams = new CommitStatusModel(state, description, context);
+		return bodyParams;
+	}
+
 	String[] makeHeader() {
 
 		String[] header = new String[3];
@@ -38,14 +43,6 @@ public class NotificationService {
 		return header;
 
 	}
-
-    private CommitStatusModel makeCommitStatus(String state, String description, String context) {
-        CommitStatusModel bodyParams = new CommitStatusModel();
-        bodyParams.state = state;
-        bodyParams.description = description;
-        bodyParams.context = context;
-        return bodyParams;
-    }
 
 	String makeJsonBody(String message, String state) {
 
@@ -58,7 +55,7 @@ public class NotificationService {
 	}
 
 	public void notifyError(String description, HookEventModel pathParams) {
-        requestWrapper(makeCommitStatus("error", description, "context"), pathParams);
+		requestWrapper(makeCommitStatus("error", description, "context"), pathParams);
 	}
 
 	public void notifyFailure(String description, HookEventModel pathParams) {
@@ -69,24 +66,25 @@ public class NotificationService {
 		requestWrapper(makeCommitStatus("pending", description, "context"), pathParams);
 	}
 	public void notifySucccess(String description, HookEventModel pathParams) {
-        
-        requestWrapper(makeCommitStatus("success", description, "context"), pathParams);
+
+		requestWrapper(makeCommitStatus("success", description, "context"), pathParams);
 	}
 	HttpRequest.Builder requestBuilder() {
 
 		return HttpRequest.newBuilder();
 	}
-    // reqWrapper takes comitRecord
-    // look at tests of commit record
-    // after = sha, owner and repo is .repositry.fullname
+	// reqWrapper takes comitRecord
+	// look at tests of commit record
+	// after = sha, owner and repo is .repositry.fullname
 	void requestWrapper(CommitStatusModel bodyParams, HookEventModel pathParams) {
 		try {
-            String json = new ObjectMapper().writeValueAsString(bodyParams);
+			String json = new ObjectMapper().writeValueAsString(bodyParams);
 			HttpClient client = clientBuilder().build();
-            String[] header = makeHeader();
-			HttpRequest request = requestBuilder().uri(URI.create(pathParams.repository.fullName)).header("Accept", header[0])
-					.header("Authorization", header[1]).header("X-GitHub-Api-Version", header[2])
-					.timeout(Duration.ofMinutes(2)).POST(BodyPublishers.ofString(json)).build();
+			String[] header = makeHeader();
+			HttpRequest request = requestBuilder().uri(URI.create(pathParams.repository().fullName()))
+					.header("Accept", header[0]).header("Authorization", header[1])
+					.header("X-GitHub-Api-Version", header[2]).timeout(Duration.ofMinutes(2))
+					.POST(BodyPublishers.ofString(json)).build();
 			handleResponse(client.send(request, BodyHandlers.ofString()));
 		} catch (IOException | InterruptedException e) {
 			LOGGER.error("Error while attempting to send request '{}' : {}", String.join(" ", "requestWrapper fail"),

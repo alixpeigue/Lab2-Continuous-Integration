@@ -14,17 +14,13 @@ public class NotificationService {
 
 	// TODO replace and integrate with webhook
 	private static final Logger LOGGER = LoggerFactory.getLogger(CommandService.class);
+	private static final String API_TOKEN = System.getenv("GITHUB_API_TOKEN");
+
 	HttpClient.Builder clientBuilder() {
 
 		return HttpClient.newBuilder();
 	}
 
-	private String getToken() {
-		CommandService commandService = new CommandService();
-		String[] command = {"echo", "$GITHUB_API_TOKEN"};
-		CommandService.CommandResult result = commandService.runCommand(command);
-		return result.output();
-	}
 	void handleResponse(HttpResponse<String> responseMessage) {
 		int responseCode = responseMessage.statusCode();
 		if (responseCode != 200) {
@@ -37,11 +33,13 @@ public class NotificationService {
 
 		String[] header = new String[3];
 		header[0] = "application/vnd.github+json";
-		header[1] = "Bearer " + getToken();
+		header[1] = "Bearer " + API_TOKEN;
 		header[2] = "2022-11-18"; // Unsure what this should actually be
 		return header;
 
 	}
+
+    
 
 	String makeJsonBody(String message, String state) {
 
@@ -64,13 +62,16 @@ public class NotificationService {
 	public void notifyPending(String message, String uriStub) {
 		requestWrapper(message, "pending", uriStub);
 	}
-	public void notifySucccess(String message, String uriStub) {
+	public void notifySucccess(String message, String uriStub, HookEventModel pathParams) {
 		requestWrapper(message, "success", uriStub);
 	}
 	HttpRequest.Builder requestBuilder() {
 
 		return HttpRequest.newBuilder();
 	}
+    // reqWrapper takes comitRecord
+    // look at tests of commit record
+    // after = sha, owner and repo is .repositry.fullname
 	void requestWrapper(String message, String state, String uriStub) {
 		try {
 			String jsonBody = makeJsonBody(message, state);
@@ -80,15 +81,10 @@ public class NotificationService {
 			HttpRequest request = requestBuilder().uri(URI.create(uriStub)).header("Accept", header[0])
 					.header("Authorization", header[1]).header("X-GitHub-Api-Version", header[2])
 					.timeout(Duration.ofMinutes(2)).POST(BodyPublishers.ofString(jsonBody)).build();
-
 			handleResponse(client.send(request, BodyHandlers.ofString()));
 		} catch (IOException | InterruptedException e) {
 			LOGGER.error("Error while attempting to send request '{}' : {}", String.join(" ", "requestWrapper fail"),
 					e.getMessage());
 		}
-	}
-	// This should be removed
-	public void updateCommitStatus(String headerContents, String uriStub, String state) {
-		requestWrapper(headerContents, state, uriStub);
 	}
 }

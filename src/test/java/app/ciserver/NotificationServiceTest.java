@@ -15,10 +15,12 @@ import org.mockito.*;
 class NotificationServiceTest {
 
 	static String uriStub;
+	private static String API_TOKEN;
 
 	@BeforeAll
 	static void testSetup() {
 		uriStub = "https://www.example.com";
+		API_TOKEN = System.getenv("GITHUB_API_TOKEN");
 	}
 
 	@Mock
@@ -80,7 +82,7 @@ class NotificationServiceTest {
 
 		verify(mockedRequestBuilder).uri(URI.create(uriStub));
 		verify(mockedRequestBuilder).header("Accept", "application/vnd.github+json");
-		verify(mockedRequestBuilder).header("Authorization", "Bearer $GITHUB_API_TOKEN");
+		verify(mockedRequestBuilder).header("Authorization", "Bearer " + API_TOKEN);
 		verify(mockedRequestBuilder).header("X-GitHub-Api-Version", "2022-11-18");
 		verify(mockedRequestBuilder).timeout(Duration.ofMinutes(2));
 		verify(mockedRequestBuilder).POST(any(HttpRequest.BodyPublisher.class));

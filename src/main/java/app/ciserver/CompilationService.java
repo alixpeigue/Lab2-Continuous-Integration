@@ -1,15 +1,27 @@
 package app.ciserver;
 
-public class CompilationService {
-	private ProcessBuilder processBuilder; // For running processes.
+import app.ciserver.CommandService.*;
 
-	public CompilationService() { // Needs the IOhandler
-		// TODO
+public class CompilationService {
+	private CommandService commandService;
+	public CompilationService(CommandService commandService) {
+		this.commandService = commandService;
 	}
 
-	public String compile() { // Not sure about the input parameters here yet.
-		// TODO
-		return " ";
+	/**
+	 * Builds gradle project at <b>projectDir</b>
+	 * <p>
+	 * using the gradlew executable at "<b>projectDir</b> + /gradlew".
+	 * <p>
+	 * 
+	 * @param projectDir
+	 *            - Full path to gradle project.
+	 * @return - The exit code and content from standard output and standard error.
+	 */
+	public CommandResult compile(String projectDir) {
+		CommandResult result = commandService
+				.runCommand(new String[]{projectDir + "/gradlew", "-p", projectDir, "build"});
+		return result;
 	}
 
 }

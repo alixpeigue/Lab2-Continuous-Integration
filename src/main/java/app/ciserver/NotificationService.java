@@ -14,7 +14,6 @@ public class NotificationService {
 
 	// TODO replace and integrate with webhook
 	private static final Logger LOGGER = LoggerFactory.getLogger(CommandService.class);
-	private String uriStub = "dummy/uri";
 	HttpClient.Builder clientBuilder() {
 
 		return HttpClient.newBuilder();
@@ -54,25 +53,25 @@ public class NotificationService {
 		return jsonBody;
 	}
 
-	public void notifyError(String message) {
-		requestWrapper(message, "error");
+	public void notifyError(String message, String uriStub) {
+		requestWrapper(message, "error", uriStub);
 	}
 
-	public void notifyFailure(String message) {
-		requestWrapper(message, "failure");
+	public void notifyFailure(String message, String uriStub) {
+		requestWrapper(message, "failure", uriStub);
 	}
 
-	public void notifyPending(String message, String state) {
-		requestWrapper(message, "pending");
+	public void notifyPending(String message, String uriStub) {
+		requestWrapper(message, "pending", uriStub);
 	}
-	public void notifySucccess(String message) {
-		requestWrapper(message, "success");
+	public void notifySucccess(String message, String uriStub) {
+		requestWrapper(message, "success", uriStub);
 	}
 	HttpRequest.Builder requestBuilder() {
 
 		return HttpRequest.newBuilder();
 	}
-	void requestWrapper(String message, String state) {
+	void requestWrapper(String message, String state, String uriStub) {
 		try {
 			String jsonBody = makeJsonBody(message, state);
 			String[] header = makeHeader();
@@ -90,6 +89,6 @@ public class NotificationService {
 	}
 	// This should be removed
 	public void updateCommitStatus(String headerContents, String uriStub, String state) {
-		requestWrapper(headerContents, state);
+		requestWrapper(headerContents, state, uriStub);
 	}
 }

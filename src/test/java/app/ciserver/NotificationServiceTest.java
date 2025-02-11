@@ -15,12 +15,13 @@ import org.mockito.*;
 class NotificationServiceTest {
 
 	static String uriStub;
-	private static String API_TOKEN;
+	static HookEventModel pathParams;
 
 	@BeforeAll
 	static void testSetup() {
 		uriStub = "https://www.example.com";
-		API_TOKEN = System.getenv("GITHUB_API_TOKEN");
+		pathParams = new HookEventModel("sha23", "ref", new PusherModel("silly@mail", "name", "username"),
+				new RepositoryModel("cloneUrl", "FullName"));
 	}
 
 	@Mock
@@ -38,15 +39,6 @@ class NotificationServiceTest {
 	@Mock
 	private HttpResponse<String> mockedResponse;
 
-	@Mock
-	private CommitStatusModel mockedBodyParams;
-
-	@Mock
-	private HookEventModel mockedPathParams;
-
-	@Mock
-	private RepositoryModel mockedRepoModel;
-
 	@Spy
 	private NotificationService spyNotificationService;
 
@@ -56,19 +48,43 @@ class NotificationServiceTest {
 	}
 
 	@Test
+	void testNotifyError() {
+
+		CommitStatusModel bodyParams = new CommitStatusModel("error", "silly", "continuous-integration/ciserver");
+		doNothing().when(spyNotificationService).requestWrapper(any(CommitStatusModel.class),
+				any(HookEventModel.class));
+		spyNotificationService.notifyError("silly", pathParams);
+		verify(spyNotificationService).requestWrapper(bodyParams, pathParams);
+	}
+	@Test
 	void testNotifyFailure() {
+
+		CommitStatusModel bodyParams = new CommitStatusModel("failure", "silly", "continuous-integration/ciserver");
+		doNothing().when(spyNotificationService).requestWrapper(any(CommitStatusModel.class),
+				any(HookEventModel.class));
+		spyNotificationService.notifyFailure("silly", pathParams);
+		verify(spyNotificationService).requestWrapper(bodyParams, pathParams);
 	}
 
 	@Test
 	void testNotifyPending() {
 
+		CommitStatusModel bodyParams = new CommitStatusModel("pending", "silly", "continuous-integration/ciserver");
 		doNothing().when(spyNotificationService).requestWrapper(any(CommitStatusModel.class),
 				any(HookEventModel.class));
+		spyNotificationService.notifyPending("silly", pathParams);
+		verify(spyNotificationService).requestWrapper(bodyParams, pathParams);
 
 	}
 
 	@Test
 	void testNotifySuccess() {
+
+		CommitStatusModel bodyParams = new CommitStatusModel("success", "silly", "continuous-integration/ciserver");
+		doNothing().when(spyNotificationService).requestWrapper(any(CommitStatusModel.class),
+				any(HookEventModel.class));
+		spyNotificationService.notifySuccess("silly", pathParams);
+		verify(spyNotificationService).requestWrapper(bodyParams, pathParams);
 	}
 
 	@Test
@@ -84,30 +100,23 @@ class NotificationServiceTest {
 
 		when(mockedClient.send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class))).thenReturn(mockedResponse);
 
-		when(mockedBodyParams.state()).thenReturn("pending");
-		when(mockedBodyParams.description()).thenReturn("silly");
-		when(mockedBodyParams.context()).thenReturn("context");
-
-		when(mockedPathParams.after()).thenReturn("sha23");
-		when(mockedPathParams.repository()).thenReturn(mockedRepoModel);
-		when(mockedRepoModel.fullName()).thenReturn("test/testman");
-
+		CommitStatusModel bodyParams = new CommitStatusModel("pending", "silly", "continuous-integration/ciserver");
 		doReturn(mockedClientBuilder).when(spyNotificationService).clientBuilder();
 		doReturn(mockedRequestBuilder).when(spyNotificationService).requestBuilder();
 		doNothing().when(spyNotificationService).handleResponse(any());
+		doReturn("API TOKEN EXAMPLE").when(spyNotificationService).getGithubToken();
 
-		spyNotificationService.requestWrapper(mockedBodyParams, mockedPathParams);
+		spyNotificationService.requestWrapper(bodyParams, pathParams);
 
-		verify(mockedRequestBuilder)
-				.uri(URI.create(mockedPathParams.repository().fullName() + "/statuses/" + mockedPathParams.after()));
+		verify(mockedRequestBuilder).uri(URI.create("FullName/statuses/sha23"));
 		verify(mockedRequestBuilder).header("Accept", "application/vnd.github+json");
-		verify(mockedRequestBuilder).header("Authorization", "Bearer " + API_TOKEN);
+		verify(mockedRequestBuilder).header("Authorization", "Bearer " + spyNotificationService.getGithubToken());
 		verify(mockedRequestBuilder).header("X-GitHub-Api-Version", "2022-11-18");
 		verify(mockedRequestBuilder).timeout(Duration.ofMinutes(2));
 		verify(mockedRequestBuilder).POST(any(HttpRequest.BodyPublisher.class));
 		verify(mockedRequestBuilder).build();
 
-		verify(mockedClient).send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class));
+		verify(mockedClient).send(mockedRequest, HttpResponse.BodyHandlers.ofString());
 		verify(mockedClientBuilder).build();
 
 		verify(spyNotificationService).handleResponse(mockedResponse);

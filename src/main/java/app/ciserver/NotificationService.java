@@ -14,13 +14,14 @@ public class NotificationService {
 
 	// TODO replace and integrate with webhook
 	private static final Logger LOGGER = LoggerFactory.getLogger(CommandService.class);
-	private static final String API_TOKEN = System.getenv("GITHUB_API_TOKEN");
 
 	HttpClient.Builder clientBuilder() {
 
 		return HttpClient.newBuilder();
 	}
-
+	String getGithubToken() {
+		return System.getenv("GITHUB_API_TOKEN");
+	}
 	void handleResponse(HttpResponse<String> responseMessage) {
 		int responseCode = responseMessage.statusCode();
 		if (responseCode != 200) {
@@ -29,45 +30,20 @@ public class NotificationService {
 		}
 	}
 
-	private CommitStatusModel makeCommitStatus(String state, String description, String context) {
-		CommitStatusModel bodyParams = new CommitStatusModel(state, description, context);
-		return bodyParams;
-	}
-
-	String[] makeHeader() {
-
-		String[] header = new String[3];
-		header[0] = "application/vnd.github+json";
-		header[1] = "Bearer " + API_TOKEN;
-		header[2] = "2022-11-18"; // Unsure what this should actually be
-		return header;
-
-	}
-
-	String makeJsonBody(String message, String state) {
-
-		String jsonBody = "{" + "\"state\":\"" + state + "\"," + "\"target_url\":null," + // Change null to proper url
-																							// down the line maybe
-				"\"description\":\"" + message + "\"," + "\"context\":\"" + "default" + "\"" + "}"; // TODO use context?
-																									// default is
-																									// default
-		return jsonBody;
-	}
-
 	public void notifyError(String description, HookEventModel pathParams) {
-		requestWrapper(makeCommitStatus("error", description, "context"), pathParams);
+		requestWrapper(new CommitStatusModel("error", description, "continuous-integration/ciserver"), pathParams);
 	}
 
 	public void notifyFailure(String description, HookEventModel pathParams) {
-		requestWrapper(makeCommitStatus("failure", description, "context"), pathParams);
+		requestWrapper(new CommitStatusModel("failure", description, "continuous-integration/ciserver"), pathParams);
 	}
 
 	public void notifyPending(String description, HookEventModel pathParams) {
-		requestWrapper(makeCommitStatus("pending", description, "context"), pathParams);
+		requestWrapper(new CommitStatusModel("pending", description, "continuous-integration/ciserver"), pathParams);
 	}
-	public void notifySucccess(String description, HookEventModel pathParams) {
+	public void notifySuccess(String description, HookEventModel pathParams) {
 
-		requestWrapper(makeCommitStatus("success", description, "context"), pathParams);
+		requestWrapper(new CommitStatusModel("success", description, "continuous-integration/ciserver"), pathParams);
 	}
 	HttpRequest.Builder requestBuilder() {
 
@@ -77,12 +53,11 @@ public class NotificationService {
 		try {
 			String json = new ObjectMapper().writeValueAsString(bodyParams);
 			HttpClient client = clientBuilder().build();
-			String[] header = makeHeader();
 			HttpRequest request = requestBuilder()
 					.uri(URI.create(pathParams.repository().fullName() + "/statuses/" + pathParams.after()))
-					.header("Accept", header[0]).header("Authorization", header[1])
-					.header("X-GitHub-Api-Version", header[2]).timeout(Duration.ofMinutes(2))
-					.POST(BodyPublishers.ofString(json)).build();
+					.header("Accept", "application/vnd.github+json")
+					.header("Authorization", "Bearer " + getGithubToken()).header("X-GitHub-Api-Version", "2022-11-18")
+					.timeout(Duration.ofMinutes(2)).POST(BodyPublishers.ofString(json)).build();
 			handleResponse(client.send(request, BodyHandlers.ofString()));
 		} catch (IOException | InterruptedException e) {
 			LOGGER.error("Error while attempting to send request '{}' : {}", String.join(" ", "requestWrapper fail"),

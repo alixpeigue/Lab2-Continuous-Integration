@@ -44,6 +44,9 @@ class NotificationServiceTest {
 	@Mock
 	private HookEventModel mockedPathParams;
 
+	@Mock
+	private RepositoryModel mockedRepoModel;
+
 	@Spy
 	private NotificationService spyNotificationService;
 
@@ -81,13 +84,22 @@ class NotificationServiceTest {
 
 		when(mockedClient.send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class))).thenReturn(mockedResponse);
 
+		when(mockedBodyParams.state()).thenReturn("pending");
+		when(mockedBodyParams.description()).thenReturn("silly");
+		when(mockedBodyParams.context()).thenReturn("context");
+
+		when(mockedPathParams.after()).thenReturn("sha23");
+		when(mockedPathParams.repository()).thenReturn(mockedRepoModel);
+		when(mockedRepoModel.fullName()).thenReturn("test/testman");
+
 		doReturn(mockedClientBuilder).when(spyNotificationService).clientBuilder();
 		doReturn(mockedRequestBuilder).when(spyNotificationService).requestBuilder();
 		doNothing().when(spyNotificationService).handleResponse(any());
 
-		spyNotificationService.requestWrapper(any(CommitStatusModel.class), any(HookEventModel.class));
+		spyNotificationService.requestWrapper(mockedBodyParams, mockedPathParams);
 
-		verify(mockedRequestBuilder).uri(URI.create(uriStub));
+		verify(mockedRequestBuilder)
+				.uri(URI.create(mockedPathParams.repository().fullName() + "/statuses/" + mockedPathParams.after()));
 		verify(mockedRequestBuilder).header("Accept", "application/vnd.github+json");
 		verify(mockedRequestBuilder).header("Authorization", "Bearer " + API_TOKEN);
 		verify(mockedRequestBuilder).header("X-GitHub-Api-Version", "2022-11-18");

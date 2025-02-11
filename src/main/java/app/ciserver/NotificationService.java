@@ -73,15 +73,13 @@ public class NotificationService {
 
 		return HttpRequest.newBuilder();
 	}
-	// reqWrapper takes comitRecord
-	// look at tests of commit record
-	// after = sha, owner and repo is .repositry.fullname
 	void requestWrapper(CommitStatusModel bodyParams, HookEventModel pathParams) {
 		try {
 			String json = new ObjectMapper().writeValueAsString(bodyParams);
 			HttpClient client = clientBuilder().build();
 			String[] header = makeHeader();
-			HttpRequest request = requestBuilder().uri(URI.create(pathParams.repository().fullName()))
+			HttpRequest request = requestBuilder()
+					.uri(URI.create(pathParams.repository().fullName() + "/statuses/" + pathParams.after()))
 					.header("Accept", header[0]).header("Authorization", header[1])
 					.header("X-GitHub-Api-Version", header[2]).timeout(Duration.ofMinutes(2))
 					.POST(BodyPublishers.ofString(json)).build();

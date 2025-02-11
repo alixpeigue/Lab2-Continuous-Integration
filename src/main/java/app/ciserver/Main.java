@@ -24,6 +24,16 @@ public class Main {
 			config.fileRenderer(new JavalinThymeleaf(thymeleafEngine()));
 		}).start(7000);
 
+		app.post("/hook", ctx -> {
+			HookEventModel event = ctx.bodyAsClass(HookEventModel.class);
+			LOGGER.info("Recieved Hook event: {}", event);
+			if(event.getBranchName().isPresent() && event.getBranchName().get().equals("prototype")) {
+				LOGGER.info("Event is for prototype branch");
+				NotificationService notificationService = new NotificationService();
+				notificationService.notifySuccess("Test success status", event);
+			}
+		});
+
 	}
 
 	public static TemplateEngine thymeleafEngine() {

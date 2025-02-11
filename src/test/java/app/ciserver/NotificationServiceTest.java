@@ -38,6 +38,12 @@ class NotificationServiceTest {
 	@Mock
 	private HttpResponse<String> mockedResponse;
 
+    @Mock
+    private CommitStatusModel mockedBodyParams;
+
+    @Mock 
+    private HookEventModel mockedPathParams;
+
 	@Spy
 	private NotificationService spyNotificationService;
 

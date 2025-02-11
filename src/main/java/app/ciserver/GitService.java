@@ -1,9 +1,18 @@
 package app.ciserver;
 
+import app.ciserver.CommandService.CommandResult;
+
 /**
  * Service that handle git manipulations
  */
 public class GitService {
+
+	private final CommandService commandService;
+
+	GitService(CommandService commandService) {
+		this.commandService = commandService;
+	}
+
 	/**
 	 * Checks out a git repository to a revision
 	 * 
@@ -15,7 +24,9 @@ public class GitService {
 	 * @return false if the checkout failed, true otherwise
 	 */
 	public boolean checkout(String repositoryFolder, String revision) {
-		return false;
+		CommandResult result = commandService
+				.runCommand(new String[]{"git", "-C", repositoryFolder, "checkout", revision});
+		return result.exitCode() == 0;
 	}
 
 	/**
@@ -28,6 +39,8 @@ public class GitService {
 	 * @return false if the clone failed, true otherwise
 	 */
 	public boolean clone(String repositoryUrl, String destinationFolder) {
-		return false;
+		CommandResult result = commandService
+				.runCommand(new String[]{"git", "clone", repositoryUrl, destinationFolder});
+		return result.exitCode() == 0;
 	}
 }

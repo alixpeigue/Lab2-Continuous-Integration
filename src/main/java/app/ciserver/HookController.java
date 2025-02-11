@@ -1,7 +1,7 @@
 package app.ciserver;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.javalin.http.Context;
+import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -11,44 +11,41 @@ public class HookController {
 
 	private final GitService gitService;
 	private final CompilationService compilationService;
-	private final ObjectMapper objectMapper;
+	private final NotificationService notificationService;
 
-	public HookController(GitService gitService, CompilationService compilationService) {
+	public HookController(GitService gitService, CompilationService compilationService,
+			NotificationService notificationService) {
 		this.gitService = gitService;
 		this.compilationService = compilationService;
-		this.objectMapper = new ObjectMapper();
+		this.notificationService = notificationService;
 	}
 
 	public void hookHandler(Context ctx) {
 		try {
-			// Step 1: Parse the request body to get the GitHub payload
-			String requestBody = ctx.body();
-			WebhookPayload payload = objectMapper.readValue(requestBody, WebhookPayload.class);
+			// Step 1: Parse the request body into HookEventModel
+			HookEventModel payload = ctx.bodyAsClass(HookEventModel.class);
 
-			// Step 2: Validate payload
-			if (payload.getRepository() == null || payload.getRepository().getCloneUrl() == null
-					|| payload.getRef() == null) {
-				ctx.status(400).result("Invalid payload: missing required fields.");
+			// Step 2: Extract repository URL and branch name
+			String repoUrl = payload.repository().cloneUrl();
+			Optional<String> branchName = payload.getBranchName();
+
+			if (branchName.isEmpty()) {
+				ctx.status(400).result("Unsupported ref type: " + payload.ref());
+				notificationService.notifyFailure("Unsupported ref type: " + payload.ref());
 				return;
 			}
 
-			// Step 3: Extract repository URL and branch name
-			String repoUrl = payload.getRepository().getCloneUrl();
-			String ref = payload.getRef();
+			logger.info("Received webhook for branch: {} of repository: {}", branchName.get(), repoUrl);
 
-			if (!ref.startsWith("refs/heads/")) {
-				ctx.status(400).result("Unsupported ref type: " + ref);
-				return;
-			}
-			String branchName = ref.split("/")[2];
-
-			logger.info("Received webhook for branch: {} of repository: {}", branchName, repoUrl);
+			// Step 3: Notify GitHub that the build is pending
+			notificationService.notifyPending();
 
 			// Step 4: Clone or update the repository
-			String destinationFolder = "./ci-repos/" + branchName + "-" + System.currentTimeMillis();
+			String destinationFolder = "./ci-repos/" + branchName.get() + "-" + System.currentTimeMillis();
 			boolean cloneSuccess = gitService.clone(repoUrl, destinationFolder);
 
 			if (!cloneSuccess) {
+				notificationService.notifyFailure("Failed to clone repository.");
 				ctx.status(500).result("Failed to clone the repository.");
 				return;
 			}
@@ -57,13 +54,14 @@ public class HookController {
 			logger.info("Running compilation...");
 			String compileOutput = compilationService.compile();
 
+			// Step 6: Notify GitHub of the build result
 			if (compileOutput.contains("error") || compileOutput.contains("FAILURE")) {
+				notificationService.notifyFailure("Compilation failed. See the output for details.");
 				ctx.status(500).result("Compilation failed. Output:\n" + compileOutput);
-				return;
+			} else {
+				notificationService.notifySuccess("Build succeeded!");
+				ctx.status(200).result("Webhook processed. Compilation output:\n" + compileOutput);
 			}
-
-			// Step 6: Send response back to GitHub
-			ctx.status(200).result("Webhook processed. Compilation output:\n" + compileOutput);
 
 		} catch (Exception e) {
 			logger.error("Error processing webhook: {}", e.getMessage(), e);

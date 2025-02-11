@@ -54,7 +54,8 @@ public class NotificationService {
 			String json = new ObjectMapper().writeValueAsString(bodyParams);
 			HttpClient client = clientBuilder().build();
 			HttpRequest request = requestBuilder()
-					.uri(URI.create(pathParams.repository().fullName() + "/statuses/" + pathParams.after()))
+					.uri(URI.create("https://api.github.com/repos/" + pathParams.repository().fullName() + "/statuses/"
+							+ pathParams.after()))
 					.header("Accept", "application/vnd.github+json")
 					.header("Authorization", "Bearer " + getGithubToken()).header("X-GitHub-Api-Version", "2022-11-18")
 					.timeout(Duration.ofMinutes(2)).POST(BodyPublishers.ofString(json)).build();

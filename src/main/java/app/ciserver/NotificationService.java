@@ -24,9 +24,10 @@ public class NotificationService {
 	}
 	void handleResponse(HttpResponse<String> responseMessage) {
 		int responseCode = responseMessage.statusCode();
-		if (responseCode != 200) {
-			LOGGER.error("Error while waiting for response '{}' : {}", String.join(" ", "status code"),
-					String.valueOf(responseCode));
+		if (responseCode != 201) {
+			LOGGER.error("Error while waiting for response statuscode : {}, message: {}", responseCode,
+					responseMessage.body());
+
 		}
 	}
 
@@ -57,7 +58,7 @@ public class NotificationService {
 					.uri(URI.create("https://api.github.com/repos/" + pathParams.repository().fullName() + "/statuses/"
 							+ pathParams.after()))
 					.header("Accept", "application/vnd.github+json")
-					.header("Authorization", "Bearer " + getGithubToken()).header("X-GitHub-Api-Version", "2022-11-18")
+					.header("Authorization", "Bearer " + getGithubToken()).header("X-GitHub-Api-Version", "2022-11-28")
 					.timeout(Duration.ofMinutes(2)).POST(BodyPublishers.ofString(json)).build();
 			handleResponse(client.send(request, BodyHandlers.ofString()));
 		} catch (IOException | InterruptedException e) {

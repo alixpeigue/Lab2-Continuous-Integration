@@ -13,7 +13,6 @@ class PusherModelTest {
 		String json = """
 				    {
 						"name": "nameValue",
-						"username": "usernameValue",
 						"other": "otherValue"
 					}
 				""";
@@ -27,7 +26,6 @@ class PusherModelTest {
 				    {
 				        "email": "emailValue",
 						"name": "nameValue",
-						"username": "usernameValue",
 						"other": "otherValue"
 					}
 				""";
@@ -36,6 +34,5 @@ class PusherModelTest {
 
 		assertEquals("emailValue", pusher.email());
 		assertEquals("nameValue", pusher.name());
-		assertEquals("usernameValue", pusher.username());
 	}
 }

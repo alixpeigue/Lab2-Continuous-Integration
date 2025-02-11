@@ -17,8 +17,7 @@ class HookEventModelTest {
 				    "ref": "refValue",
 				    "pusher": {
 				        "email": "emailValue",
-				        "name": "nameValue",
-				        "username": "usernameValue"
+				        "name": "nameValue"
 				    },
 				    "repository": {
 				    	"clone_url": "cloneUrlValue",
@@ -39,8 +38,7 @@ class HookEventModelTest {
 				    "ref": "refValue",
 				    "pusher": {
 				        "email": "emailValue",
-				        "name": "nameValue",
-				        "username": "usernameValue"
+				        "name": "nameValue"
 				    },
 				    "repository": {
 				    	"clone_url": "cloneUrlValue",

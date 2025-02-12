@@ -87,6 +87,8 @@ class NotificationServiceTest {
 		verify(spyNotificationService).requestWrapper(bodyParams, pathParams);
 	}
 
+	// Ensure that the requestWrapper calls the expected methods for a well-formed
+	// request
 	@Test
 	void testRequestWrapper() throws IOException, InterruptedException {
 

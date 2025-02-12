@@ -34,8 +34,8 @@ public class Main {
 				testRunPersistenceService);
 
 		app.post("/hook", hookController::hookHandler);
-		app.get("/Builds", testRunController::testRunListHandler);
-		app.get("/Builds/{commitSHA}", testRunController::testRunDetailHandler);
+		app.get("/builds", testRunController::testRunListHandler);
+		app.get("/builds/{commitSHA}", testRunController::testRunDetailHandler);
 
 	}
 

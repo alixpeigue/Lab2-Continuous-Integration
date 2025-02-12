@@ -110,7 +110,7 @@ class NotificationServiceTest {
 
 		spyNotificationService.requestWrapper(bodyParams, pathParams);
 
-		verify(mockedRequestBuilder).uri(URI.create("FullName/statuses/sha23"));
+		verify(mockedRequestBuilder).uri(URI.create("https://api.github.com/repos/FullName/statuses/sha23"));
 		verify(mockedRequestBuilder).header("Accept", "application/vnd.github+json");
 		verify(mockedRequestBuilder).header("Authorization", "Bearer " + spyNotificationService.getGithubToken());
 		verify(mockedRequestBuilder).header("X-GitHub-Api-Version", "2022-11-28");

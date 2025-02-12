@@ -28,8 +28,7 @@ the template engine is Thymeleaf and slf4j-simple is used for logging.
 For unit tests, Mockito for mocking the injected dependencies in the services.
 
 ## Workflow
-Additional details available in wiki
-To add a feature or fix something:
+Additional details available in [wiki](https://github.com/alixpeigue/Lab2-Continuous-Integration/wiki/Development-practices), to add a feature or fix something:
 1. Make an issue describing it
 2. Make a branch of main or relevant branch if applicable
 3. Work on the branch and once "done" make sure it builds (run ./gradlew clean build, if windows ./gradlew.bat clean build)

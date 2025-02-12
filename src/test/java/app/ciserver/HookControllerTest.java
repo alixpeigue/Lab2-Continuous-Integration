@@ -1,12 +1,17 @@
 package app.ciserver;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.contains;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 import io.javalin.http.Context;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
@@ -24,28 +29,72 @@ class HookControllerTest {
 	private NotificationService notificationService;
 
 	@Mock
+	private TestRunPersistenceService testRunPersistenceService;
+
+	@Mock
 	private Context ctx;
+
+	@Test
+	void SaveSuccessful() {
+		HookEventModel mockPayload = mock(HookEventModel.class);
+		PusherModel mockPusher = mock(PusherModel.class);
+
+		when(mockPayload.repository())
+				.thenReturn(new RepositoryModel("https://github.com/example/repo.git", "example/repo"));
+		when(mockPayload.getBranchName()).thenReturn(Optional.of("main"));
+		when(mockPayload.after()).thenReturn("abcd1234"); // Mock commit hash
+		when(mockPayload.pusher()).thenReturn(mockPusher);
+		when(mockPusher.name()).thenReturn("John Doe");
+		when(ctx.bodyAsClass(HookEventModel.class)).thenReturn(mockPayload);
+
+		when(gitService.clone(anyString(), anyString())).thenReturn(true);
+		when(gitService.checkout(anyString(), eq("abcd1234"))).thenReturn(true); // Use commit hash
+		when(compilationService.compile(anyString())).thenReturn(new CommandService.CommandResult(0, "Success"));
+		when(testRunPersistenceService.save(any())).thenReturn(true);
+
+		hookController.hookHandler(ctx);
+
+		// Capture the argument given to the persistance service.
+		ArgumentCaptor<TestRunModel> testRunCaptor = ArgumentCaptor.forClass(TestRunModel.class);
+
+		// Verify that save method is called.
+		verify(testRunPersistenceService).save(testRunCaptor.capture());
+		TestRunModel capturedTestRun = testRunCaptor.getValue();
+
+		// Check that the values correct
+		assertEquals("Success", capturedTestRun.status());
+		assertEquals("abcd1234", capturedTestRun.commitSHA());
+		assertEquals("main", capturedTestRun.branchName());
+		assertEquals("John Doe", capturedTestRun.pusherName());
+		assertEquals("Success", capturedTestRun.buildLogs());
+
+	}
 
 	@BeforeEach
 	void setUp() {
 		MockitoAnnotations.openMocks(this);
-		hookController = new HookController(gitService, compilationService, notificationService);
+		hookController = new HookController(gitService, compilationService, notificationService,
+				testRunPersistenceService);
 	}
 
 	@Test
 	void testHookHandler_CompilationFailure() {
 		// Arrange
 		HookEventModel mockPayload = mock(HookEventModel.class);
+		PusherModel mockPusher = mock(PusherModel.class);
+
 		when(mockPayload.repository())
 				.thenReturn(new RepositoryModel("https://github.com/example/repo.git", "example/repo"));
 		when(mockPayload.getBranchName()).thenReturn(Optional.of("main"));
 		when(mockPayload.after()).thenReturn("abcd1234"); // Mock commit hash
+		when(mockPayload.pusher()).thenReturn(mockPusher);
 		when(ctx.bodyAsClass(HookEventModel.class)).thenReturn(mockPayload);
 
 		when(gitService.clone(anyString(), anyString())).thenReturn(true);
 		when(gitService.checkout(anyString(), eq("abcd1234"))).thenReturn(true); // Use commit hash
 		when(compilationService.compile(anyString()))
 				.thenReturn(new CommandService.CommandResult(1, "FAILURE: Build failed"));
+		when(testRunPersistenceService.save(any())).thenReturn(true);
 
 		// Act
 		hookController.hookHandler(ctx);
@@ -120,12 +169,13 @@ class HookControllerTest {
 		// Arrange
 		HookEventModel mockPayload = mock(HookEventModel.class);
 		RepositoryModel mockRepo = mock(RepositoryModel.class);
-
+		PusherModel mockPusher = mock(PusherModel.class);
 		when(mockPayload.repository()).thenReturn(mockRepo);
 		when(mockRepo.cloneUrl()).thenReturn("https://github.com/example/repo.git");
 		when(mockPayload.getBranchName()).thenReturn(Optional.of("main"));
 		when(mockPayload.after()).thenReturn("abcd1234"); // Mock commit hash
 		when(ctx.bodyAsClass(HookEventModel.class)).thenReturn(mockPayload);
+		when(mockPayload.pusher()).thenReturn(mockPusher);
 
 		// Ensure both clone and checkout succeed
 		when(gitService.clone(anyString(), anyString())).thenReturn(true);
@@ -144,4 +194,5 @@ class HookControllerTest {
 		verify(ctx).status(200);
 		verify(ctx).result(contains("Webhook processed. Compilation output:"));
 	}
+
 }

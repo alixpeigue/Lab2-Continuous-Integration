@@ -28,9 +28,14 @@ public class Main {
 		GitService gitService = new GitService(commandService);
 		CompilationService compilationService = new CompilationService(commandService);
 		NotificationService notificationService = new NotificationService();
-		HookController hookController = new HookController(gitService, compilationService, notificationService);
+		TestRunPersistenceService testRunPersistenceService = new TestRunPersistenceService();
+		TestRunController testRunController = new TestRunController(testRunPersistenceService);
+		HookController hookController = new HookController(gitService, compilationService, notificationService,
+				testRunPersistenceService);
 
 		app.post("/hook", hookController::hookHandler);
+		app.get("/Builds", testRunController::testRunListHandler);
+		app.get("/Builds/{commitSHA}", testRunController::testRunDetailHandler);
 
 	}
 

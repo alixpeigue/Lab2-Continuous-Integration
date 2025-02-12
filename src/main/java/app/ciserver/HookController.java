@@ -2,6 +2,7 @@ package app.ciserver;
 
 import app.ciserver.CommandService.CommandResult;
 import io.javalin.http.Context;
+import java.util.Date;
 import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,12 +14,14 @@ public class HookController {
 	private final GitService gitService;
 	private final CompilationService compilationService;
 	private final NotificationService notificationService;
+	private final TestRunPersistenceService testRunPersistenceService;
 
 	public HookController(GitService gitService, CompilationService compilationService,
-			NotificationService notificationService) {
+			NotificationService notificationService, TestRunPersistenceService testRunPersistenceService) {
 		this.gitService = gitService;
 		this.compilationService = compilationService;
 		this.notificationService = notificationService;
+		this.testRunPersistenceService = testRunPersistenceService;
 	}
 	/**
 	 * Handles incoming GitHub webhooks and triggers the CI/CD pipeline.
@@ -84,7 +87,22 @@ public class HookController {
 		logger.info("Running compilation...");
 		CommandResult compileOutput = compilationService.compile(destinationFolder);
 
-		// Step 6: Notify GitHub of the build result
+		// Step 6: Save information to server disk.
+		TestRunModel testRun = new TestRunModel(new Date(), (compileOutput.exitCode() == 0) ? "success" : "failure",
+				payload.after(), // CommitSHA
+				payload.getBranchName().get(), payload.pusher().name(), compileOutput.output() // Build log
+		);
+
+		logger.info("Saving test run...");
+		boolean saveStatus = testRunPersistenceService.save(testRun);
+		if (!saveStatus) {
+			logger.info("Failed to save test run.");
+		} else {
+			logger.info("Save successfull.");
+		}
+
+		// Step 7: Notify GitHub of the build result
+		logger.info("Updating GitHub commit status...");
 		if (compileOutput.exitCode() != 0) {
 			notificationService.notifyFailure("Compilation failed. See the output for details.", payload);
 			ctx.status(200);

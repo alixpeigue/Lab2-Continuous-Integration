@@ -49,16 +49,19 @@ class TestRunPersistenceServiceTest {
 	 */
 	@Test
 	void testLoadAll() throws IOException {
-		TestRunModel expected = new TestRunModel(date, "success", "COMMITSHA", "main", "name", "Build success");
-		String fileContents = new ObjectMapper().writeValueAsString(expected);
+		TestRunModel run1 = new TestRunModel(date, "success", "COMMITSHA1", "main", "name", "Build success");
+		TestRunModel run2 = new TestRunModel(new Date(), "success", "COMMITSHA2", "main", "name", "Build success");
+		String fileContents1 = new ObjectMapper().writeValueAsString(run1);
+		String fileContents2 = new ObjectMapper().writeValueAsString(run2);
 
 		// We simulate a folder that contains two files
-		doReturn(List.of("testRuns/file1.json", "testRuns/file2.json")).when(testRunPersistenceService)
-				.getAllJsonFilesInFolder();
+		doReturn(List.of("testRuns/file1.json", "testRuns/file2.json", "testRuns.file3.json"))
+				.when(testRunPersistenceService).getAllJsonFilesInFolder();
 		// One of them correctly returns its contents
-		doReturn(fileContents).when(testRunPersistenceService).getFileContents("testRuns/file1.json");
+		doReturn(fileContents1).when(testRunPersistenceService).getFileContents("testRuns/file1.json");
+		doReturn(fileContents2).when(testRunPersistenceService).getFileContents("testRuns/file2.json");
 		// The other produces an IOException
-		doThrow(IOException.class).when(testRunPersistenceService).getFileContents("testRuns/file2.json");
+		doThrow(IOException.class).when(testRunPersistenceService).getFileContents("testRuns/file3.json");
 
 		List<TestRunModel> result = testRunPersistenceService.loadAll();
 
@@ -68,8 +71,10 @@ class TestRunPersistenceServiceTest {
 
 		// At the end, we should therefore only have one element corresponding to
 		// file1.json
-		assertEquals(1, result.size());
-		assertTrue(result.contains(expected));
+		assertEquals(2, result.size());
+		assertEquals("COMMITSHA2", result.get(0).commitSHA()); // since run2 has a newer date that run1, they should be
+																// in this order
+		assertEquals("COMMITSHA1", result.get(1).commitSHA());
 	}
 
 	/**

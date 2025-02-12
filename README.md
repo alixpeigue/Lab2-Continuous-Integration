@@ -1,4 +1,4 @@
-# Continuous Integration server using Javalin  
+# Continuous Integration server using Javalin
 ## Running and testing 
 # silly
 To build `./gradlew build`

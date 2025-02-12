@@ -41,7 +41,7 @@ public class TestRunPersistenceService {
 		List<String> result = new ArrayList<>();
 		for (File file : files) {
 			if (file.isFile() && file.getName().endsWith(".json")) {
-				result.add(file.getName());
+				result.add(file.getPath());
 			}
 		}
 		return result;

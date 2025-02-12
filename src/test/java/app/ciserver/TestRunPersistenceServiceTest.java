@@ -53,17 +53,18 @@ class TestRunPersistenceServiceTest {
 		String fileContents = new ObjectMapper().writeValueAsString(expected);
 
 		// We simulate a folder that contains two files
-		doReturn(List.of("file1.json", "file2.json")).when(testRunPersistenceService).getAllJsonFilesInFolder();
+		doReturn(List.of("testRuns/file1.json", "testRuns/file2.json")).when(testRunPersistenceService)
+				.getAllJsonFilesInFolder();
 		// One of them correctly returns its contents
-		doReturn(fileContents).when(testRunPersistenceService).getFileContents("file1.json");
+		doReturn(fileContents).when(testRunPersistenceService).getFileContents("testRuns/file1.json");
 		// The other produces an IOException
-		doThrow(IOException.class).when(testRunPersistenceService).getFileContents("file2.json");
+		doThrow(IOException.class).when(testRunPersistenceService).getFileContents("testRuns/file2.json");
 
 		List<TestRunModel> result = testRunPersistenceService.loadAll();
 
 		verify(testRunPersistenceService).getAllJsonFilesInFolder();
-		verify(testRunPersistenceService).getFileContents("file1.json");
-		verify(testRunPersistenceService).getFileContents("file2.json");
+		verify(testRunPersistenceService).getFileContents("testRuns/file1.json");
+		verify(testRunPersistenceService).getFileContents("testRuns/file2.json");
 
 		// At the end, we should therefore only have one element corresponding to
 		// file1.json

@@ -20,6 +20,12 @@ The file can be distributed and ran in prod environment via `java -jar ciserver-
 
 You can also choose the environment by setting the JAVA_ENV environment variable to `dev` or `prod` (default: `prod`).
 
+## Servers testing functionality
+
+The server when triggered will clone the repo and run ./gradlew build which will check if the code compiles, run the tests and check if formatting is correct. Depending on the result of this operation, the server will then send a commit status via the GitHub REST API
+The notification service sends and HTTP POST request to GitHub to inform about the status of the run. They are exposed as public interfaces for each status of a run as given in the GitHub REST API. 
+Mockito has been extensively used for most services to be able to test whether the correct functionality has been implemented, the right methods have been called in correct order and the results are in expectation for given inputs.
+
 ## Libraries
 
 The app uses Javalin as its web framework. Jackson is used for serialization/deserialization,
@@ -38,7 +44,21 @@ Additional details available in [wiki](https://github.com/alixpeigue/Lab2-Contin
 7. Commit message should be of the form: "feature/fix/doc/refactor: #issue-number Did the thing that makes the PR relevant"
 8. If your PR fixes an issue, make sure to [link the issue that you are fixing](https://docs.github.com/en/issues/tracking-your-work-with-issues/using-issues/linking-a-pull-request-to-an-issue)
 ## Statement of contributions
-TODO
+* Alix Peigue: Repo setup, CommandService 
+* Samer Jameel: CommitStatusModel
+* Leo Lundberg: NotificationService  
+* Adam Fridén Rasmussen: Compilation and TestService and Persistence
+* Anass Inani: Hook controller, Persistence
+* Everyone participated in code reviews to varying degrees
 ## Statement of Essence
-TODO
+State : Foundation established
+
+Compared to Lab 1, we have reached this state through us documenting explicitly how contributions should be made and named, and also we have added automation to our toolchain that enforces adherence to some of our documented conventions.
+- We have a {wiki](https://github.com/alixpeigue/Lab2-Continuous-Integration/wiki/Development-practices)
+- Clear formatting conventions that are automatically checked at build time
+- GitHub Actions set up to catch any violations and ensure compliance
+
+That said though, we have not progressed forward to "In Use" because of:
+- There is no documented way to give feedback on the work and practices.
+- The tools and practices are not regularly inspected
 

@@ -49,7 +49,7 @@ class HookControllerTest {
 
 		when(gitService.clone(anyString(), anyString())).thenReturn(true);
 		when(gitService.checkout(anyString(), eq("abcd1234"))).thenReturn(true); // Use commit hash
-		when(compilationService.compile(anyString())).thenReturn(new CommandService.CommandResult(0, "Success"));
+		when(compilationService.compile(anyString())).thenReturn(new CommandService.CommandResult(0, "success"));
 		when(testRunPersistenceService.save(any())).thenReturn(true);
 
 		hookController.hookHandler(ctx);
@@ -61,12 +61,12 @@ class HookControllerTest {
 		verify(testRunPersistenceService).save(testRunCaptor.capture());
 		TestRunModel capturedTestRun = testRunCaptor.getValue();
 
-		// Check that the values correct
-		assertEquals("Success", capturedTestRun.status());
+		// Check that the values are correct in the captured argument.
+		assertEquals("success", capturedTestRun.status());
 		assertEquals("abcd1234", capturedTestRun.commitSHA());
 		assertEquals("main", capturedTestRun.branchName());
 		assertEquals("John Doe", capturedTestRun.pusherName());
-		assertEquals("Success", capturedTestRun.buildLogs());
+		assertEquals("success", capturedTestRun.buildLogs());
 
 	}
 

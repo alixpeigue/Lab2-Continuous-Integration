@@ -88,7 +88,7 @@ public class HookController {
 		CommandResult compileOutput = compilationService.compile(destinationFolder);
 
 		// Step 6: Save information to server disk.
-		TestRunModel testRun = new TestRunModel(new Date(), (compileOutput.exitCode() == 0) ? "Success" : "Failure",
+		TestRunModel testRun = new TestRunModel(new Date(), (compileOutput.exitCode() == 0) ? "success" : "failure",
 				payload.after(), // CommitSHA
 				payload.getBranchName().get(), payload.pusher().name(), compileOutput.output() // Build log
 		);

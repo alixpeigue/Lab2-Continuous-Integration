@@ -11,9 +11,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,7 +39,7 @@ public class TestRunPersistenceService {
 		List<String> result = new ArrayList<>();
 		for (File file : files) {
 			if (file.isFile() && file.getName().endsWith(".json")) {
-				result.add(file.getName());
+				result.add(file.getPath());
 			}
 		}
 		return result;
@@ -89,6 +87,7 @@ public class TestRunPersistenceService {
 						e.getMessage());
 			}
 		}
+		testRuns.sort(Comparator.comparing(TestRunModel::timestamp).reversed());
 		return testRuns;
 	}
 

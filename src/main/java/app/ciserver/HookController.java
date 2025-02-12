@@ -20,7 +20,16 @@ public class HookController {
 		this.compilationService = compilationService;
 		this.notificationService = notificationService;
 	}
-
+	/**
+	 * Handles incoming GitHub webhooks and triggers the CI/CD pipeline.
+	 * 
+	 * This method processes webhook payloads, extracts repository details, clones
+	 * the repository, compiles the project, and sends notifications.
+	 *
+	 *
+	 * @param ctx
+	 *            The Javalin HTTP context containing the webhook request.
+	 **/
 	public void hookHandler(Context ctx) {
 		try {
 			// Step 1: Parse the request body into HookEventModel
@@ -48,8 +57,17 @@ public class HookController {
 
 			if (!cloneSuccess) {
 				notificationService.notifyFailure("Failed to clone repository.", payload);
-				ctx.status(500);
+				ctx.status(200);
 				ctx.result("Failed to clone the repository.");
+				return;
+			}
+
+			// Checkout the branch after cloning
+			boolean checkoutSuccess = gitService.checkout(destinationFolder, branchName.get());
+			if (!checkoutSuccess) {
+				notificationService.notifyFailure("Failed to checkout branch.", payload);
+				ctx.status(200);
+				ctx.result("Failed to checkout the branch.");
 				return;
 			}
 
@@ -58,10 +76,9 @@ public class HookController {
 			CommandResult compileOutput = compilationService.compile(destinationFolder);
 
 			// Step 6: Notify GitHub of the build result
-			if (compileOutput.output().contains("error") || compileOutput.output().contains("FAILURE")
-					|| compileOutput.exitCode() != 0) {
+			if (compileOutput.exitCode() != 0) {
 				notificationService.notifyFailure("Compilation failed. See the output for details.", payload);
-				ctx.status(500);
+				ctx.status(200);
 				ctx.result("Compilation failed. Output:\n" + compileOutput);
 			} else {
 				notificationService.notifySuccess("Build succeeded!", payload);
@@ -69,10 +86,10 @@ public class HookController {
 				ctx.result("Webhook processed. Compilation output:\n" + compileOutput);
 			}
 
-		} catch (Exception e) {
-			logger.error("Error processing webhook: {}", e.getMessage(), e);
-			ctx.status(500);
-			ctx.result("Error processing webhook: " + e.getMessage());
+		} catch (NullPointerException e) {
+			logger.error("Missing repository information in webhook: {}", e.getMessage(), e);
+			ctx.status(400);
+			ctx.result("Missing repository information in webhook.");
 		}
 	}
 }

@@ -24,6 +24,14 @@ public class Main {
 			config.fileRenderer(new JavalinThymeleaf(thymeleafEngine()));
 		}).start(7000);
 
+		CommandService commandService = new CommandService();
+		GitService gitService = new GitService(commandService);
+		CompilationService compilationService = new CompilationService(commandService);
+		NotificationService notificationService = new NotificationService();
+		HookController hookController = new HookController(gitService, compilationService, notificationService);
+
+		app.post("/hook", hookController::hookHandler);
+
 	}
 
 	public static TemplateEngine thymeleafEngine() {

@@ -24,14 +24,14 @@ public class TestRunPersistenceService {
 	private static final Logger LOGGER = LoggerFactory.getLogger(TestRunPersistenceService.class);
 
 	boolean createFolder() {
-        try {
-            Files.createDirectories(Path.of(FOLDER));
+		try {
+			Files.createDirectories(Path.of(FOLDER));
 			return true;
-        } catch (IOException e) {
+		} catch (IOException e) {
 			LOGGER.error("Error creating '{}' folder ; {}", FOLDER, e.getMessage());
-            throw new RuntimeException(e);
-        }
-    }
+			throw new RuntimeException(e);
+		}
+	}
 
 	List<String> getAllJsonFilesInFolder() {
 		File[] files = new File(FOLDER).listFiles();
@@ -101,7 +101,7 @@ public class TestRunPersistenceService {
 	 * @return true if the test run was saved successfully, false otherwise
 	 */
 	public boolean save(TestRunModel testRun) {
-		if(!createFolder()) {
+		if (!createFolder()) {
 			return false;
 		}
 		String filename = FOLDER + "/" + testRun.commitSHA() + ".json";

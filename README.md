@@ -1,6 +1,6 @@
 # Continuous Integration server using Javalin
 ## Running and testing 
-# silly
+
 To build `./gradlew build`
 
 To run, `./gradlew run` runs the server in dev environment

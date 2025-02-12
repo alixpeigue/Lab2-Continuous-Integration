@@ -23,10 +23,9 @@ public class TestRunPersistenceService {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(TestRunPersistenceService.class);
 
-	boolean createFolder() {
+	void createFolder() {
 		try {
 			Files.createDirectories(Path.of(FOLDER));
-			return true;
 		} catch (IOException e) {
 			LOGGER.error("Error creating '{}' folder ; {}", FOLDER, e.getMessage());
 			throw new RuntimeException(e);
@@ -101,9 +100,7 @@ public class TestRunPersistenceService {
 	 * @return true if the test run was saved successfully, false otherwise
 	 */
 	public boolean save(TestRunModel testRun) {
-		if (!createFolder()) {
-			return false;
-		}
+		createFolder();
 		String filename = FOLDER + "/" + testRun.commitSHA() + ".json";
 		ObjectMapper objectMapper = new ObjectMapper();
 		try {

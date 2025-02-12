@@ -116,7 +116,6 @@ class TestRunPersistenceServiceTest {
 		TestRunModel testRun = new TestRunModel(date, "success", "COMMITHASH", "main", "name", "Build success");
 		String expectedFileContents = new ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(testRun);
 		// We simulate writing to disk producing an IOException
-		doReturn(true).when(testRunPersistenceService).createFolder();
 		doThrow(IOException.class).when(testRunPersistenceService).writeToFile(anyString(), anyString());
 
 		boolean result = testRunPersistenceService.save(testRun);
@@ -134,7 +133,6 @@ class TestRunPersistenceServiceTest {
 	void testSaveSuccess() throws IOException {
 		TestRunModel testRun = new TestRunModel(date, "success", "COMMITHASH", "main", "name", "Build success");
 		String expectedFileContents = new ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(testRun);
-		doReturn(true).when(testRunPersistenceService).createFolder();
 		doNothing().when(testRunPersistenceService).writeToFile(anyString(), anyString());
 
 		boolean result = testRunPersistenceService.save(testRun);

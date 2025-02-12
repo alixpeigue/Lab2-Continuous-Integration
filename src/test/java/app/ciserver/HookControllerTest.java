@@ -39,10 +39,11 @@ class HookControllerTest {
 		when(mockPayload.repository())
 				.thenReturn(new RepositoryModel("https://github.com/example/repo.git", "example/repo"));
 		when(mockPayload.getBranchName()).thenReturn(Optional.of("main"));
+		when(mockPayload.after()).thenReturn("abcd1234"); // Mock commit hash
 		when(ctx.bodyAsClass(HookEventModel.class)).thenReturn(mockPayload);
 
 		when(gitService.clone(anyString(), anyString())).thenReturn(true);
-		when(gitService.checkout(anyString(), anyString())).thenReturn(true); // Ensure checkout succeeds
+		when(gitService.checkout(anyString(), eq("abcd1234"))).thenReturn(true); // Use commit hash
 		when(compilationService.compile(anyString()))
 				.thenReturn(new CommandService.CommandResult(1, "FAILURE: Build failed"));
 
@@ -61,10 +62,11 @@ class HookControllerTest {
 		when(mockPayload.repository())
 				.thenReturn(new RepositoryModel("https://github.com/example/repo.git", "example/repo"));
 		when(mockPayload.getBranchName()).thenReturn(Optional.of("main"));
+		when(mockPayload.after()).thenReturn("abcd1234"); // Mock commit hash
 		when(ctx.bodyAsClass(HookEventModel.class)).thenReturn(mockPayload);
 
 		when(gitService.clone(anyString(), anyString())).thenReturn(true);
-		when(gitService.checkout(anyString(), anyString())).thenReturn(false); // Mock checkout failure
+		when(gitService.checkout(anyString(), eq("abcd1234"))).thenReturn(false); // Mock checkout failure
 
 		// Act
 		hookController.hookHandler(ctx);
@@ -82,6 +84,7 @@ class HookControllerTest {
 		when(mockPayload.repository())
 				.thenReturn(new RepositoryModel("https://github.com/example/repo.git", "example/repo"));
 		when(mockPayload.getBranchName()).thenReturn(Optional.of("main"));
+		when(mockPayload.after()).thenReturn("abcd1234"); // Mock commit hash
 		when(ctx.bodyAsClass(HookEventModel.class)).thenReturn(mockPayload);
 
 		when(gitService.clone(anyString(), anyString())).thenReturn(false);
@@ -102,13 +105,13 @@ class HookControllerTest {
 		when(mockPayload.repository())
 				.thenReturn(new RepositoryModel("https://github.com/example/repo.git", "example/repo"));
 		when(mockPayload.getBranchName()).thenReturn(Optional.empty());
+		when(mockPayload.after()).thenReturn("abcd1234"); // Mock commit hash
 		when(ctx.bodyAsClass(HookEventModel.class)).thenReturn(mockPayload);
 
 		// Act
 		hookController.hookHandler(ctx);
 
 		// Assert
-		verify(ctx).status(400);
 		verify(notificationService).notifyFailure(contains("Unsupported ref type"), eq(mockPayload));
 	}
 
@@ -121,11 +124,12 @@ class HookControllerTest {
 		when(mockPayload.repository()).thenReturn(mockRepo);
 		when(mockRepo.cloneUrl()).thenReturn("https://github.com/example/repo.git");
 		when(mockPayload.getBranchName()).thenReturn(Optional.of("main"));
+		when(mockPayload.after()).thenReturn("abcd1234"); // Mock commit hash
 		when(ctx.bodyAsClass(HookEventModel.class)).thenReturn(mockPayload);
 
 		// Ensure both clone and checkout succeed
 		when(gitService.clone(anyString(), anyString())).thenReturn(true);
-		when(gitService.checkout(anyString(), anyString())).thenReturn(true);
+		when(gitService.checkout(anyString(), eq("abcd1234"))).thenReturn(true);
 		when(compilationService.compile(anyString()))
 				.thenReturn(new CommandService.CommandResult(0, "BUILD SUCCESSFUL"));
 

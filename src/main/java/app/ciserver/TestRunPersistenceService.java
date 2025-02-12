@@ -9,6 +9,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -18,10 +19,22 @@ import org.slf4j.LoggerFactory;
 
 public class TestRunPersistenceService {
 
+	private static final String FOLDER = "testRuns";
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(TestRunPersistenceService.class);
 
+	boolean createFolder() {
+        try {
+            Files.createDirectories(Path.of(FOLDER));
+			return true;
+        } catch (IOException e) {
+			LOGGER.error("Error creating '{}' folder ; {}", FOLDER, e.getMessage());
+            throw new RuntimeException(e);
+        }
+    }
+
 	List<String> getAllJsonFilesInFolder() {
-		File[] files = new File("testRuns").listFiles();
+		File[] files = new File(FOLDER).listFiles();
 
 		if (files == null) {
 			return new ArrayList<>();
@@ -48,7 +61,7 @@ public class TestRunPersistenceService {
 	 *         found, the test run is present otherwise.
 	 */
 	public Optional<TestRunModel> load(String commitSHA) {
-		String filename = "testRuns/" + commitSHA + ".json";
+		String filename = FOLDER + "/" + commitSHA + ".json";
 		ObjectMapper objectMapper = new ObjectMapper();
 		try {
 			TestRunModel testRun = objectMapper.readValue(getFileContents(filename), TestRunModel.class);
@@ -88,7 +101,10 @@ public class TestRunPersistenceService {
 	 * @return true if the test run was saved successfully, false otherwise
 	 */
 	public boolean save(TestRunModel testRun) {
-		String filename = "testRuns/" + testRun.commitSHA() + ".json";
+		if(!createFolder()) {
+			return false;
+		}
+		String filename = FOLDER + "/" + testRun.commitSHA() + ".json";
 		ObjectMapper objectMapper = new ObjectMapper();
 		try {
 			writeToFile(filename, objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(testRun));

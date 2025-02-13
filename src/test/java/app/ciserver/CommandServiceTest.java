@@ -33,6 +33,7 @@ class CommandServiceTest {
 		var result = spiedCommandService.runCommand(command);
 
 		assertEquals(new CommandService.CommandResult(-1, ""), result);
+		assertTrue(false);
 	}
 
 	@Test

@@ -54,7 +54,7 @@ Additional details available in [wiki](https://github.com/alixpeigue/Lab2-Contin
 State : Foundation established
 
 Compared to Lab 1, we have reached this state through us documenting explicitly how contributions should be made and named, and also we have added automation to our toolchain that enforces adherence to some of our documented conventions.
-- We have a {wiki](https://github.com/alixpeigue/Lab2-Continuous-Integration/wiki/Development-practices)
+- We have a [wiki](https://github.com/alixpeigue/Lab2-Continuous-Integration/wiki/Development-practices)
 - Clear formatting conventions that are automatically checked at build time
 - GitHub Actions set up to catch any violations and ensure compliance
 

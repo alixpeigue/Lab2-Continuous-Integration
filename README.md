@@ -8,6 +8,7 @@ To run, `./gradlew run` runs the server in dev environment
 
 To test `./gradlew test`
 
+
 The codded is formatted using spotless, `./gradlew spotlessApply` to format the project files.
 Building will fail if the files are not formatted correctly.
 

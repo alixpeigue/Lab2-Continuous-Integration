@@ -55,6 +55,7 @@ class CommandServiceTest {
 		verify(mockProcessBuilder).redirectErrorStream(true); // check that stderr is redirected to stdout
 
 		assertEquals(new CommandService.CommandResult(2, output), result);
+		assertTrue(false);
 	}
 
 }
